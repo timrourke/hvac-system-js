@@ -21,6 +21,21 @@ function Hvac(initialTemperature) {
   }
 }
 
+function get(url, callback) {
+  var oReq = new XMLHttpRequest();
+  oReq.addEventListener("load", callback);
+  oReq.open("GET", url);
+  oReq.send();
+}
+
+function post(url, body, callback) {
+  var oReq = new XMLHttpRequest();
+  oReq.addEventListener("load", callback);
+  oReq.open("POST", url);
+  oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  oReq.send();
+}
+
 function EnvironmentController(hvac) {
   const MIN_TEMP = 65;
   const MAX_TEMP = 75;
@@ -35,7 +50,7 @@ function EnvironmentController(hvac) {
       case (this.temperatureTooLow(this.hvac.temp())):
         return this.tryTurningOnHeating();
 
-      default:
+      default: 
         return this.doNothing();
     }
   }
