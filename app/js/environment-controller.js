@@ -28,21 +28,34 @@ function EnvironmentController(hvac) {
   this.fanPreviousStates = [false];
 
   this.tick = function tick() {
-    if (this.temperatureTooHigh(this.hvac.temp())) {
-      this.hvac.cool(true);
-      this.hvac.heat(false);
-      this.hvac.fan(this.shouldTurnFanOn(this.hvac.temp()));
+    switch (true) {
+      case (this.temperatureTooHigh(this.hvac.temp())):
+        return this.tryTurningOnCooling();
+
+      case (this.temperatureTooLow(this.hvac.temp())):
+        return this.tryTurningOnHeating();
+
+      default:
+        return this.doNothing();
     }
-    else if (this.temperatureTooLow(this.hvac.temp())){
-      this.hvac.cool(false);
-      this.hvac.heat(true);
-      this.hvac.fan(this.shouldTurnFanOn(this.hvac.temp()));
-    }
-    else {
-      this.hvac.cool(false);
-      this.hvac.heat(false);
-      this.hvac.fan(this.shouldTurnFanOn(this.hvac.temp()));
-    }
+  }
+
+  this.tryTurningOnCooling = function tryTurningOnCooling() {
+    this.hvac.cool(true);
+    this.hvac.heat(false);
+    this.hvac.fan(this.shouldTurnFanOn(this.hvac.temp()));
+  }
+
+  this.tryTurningOnHeating = function tryTurningOnHeating() {
+    this.hvac.cool(false);
+    this.hvac.heat(true);
+    this.hvac.fan(this.shouldTurnFanOn(this.hvac.temp()));
+  }
+
+  this.doNothing = function doNothing() {
+    this.hvac.cool(false);
+    this.hvac.heat(false);
+    this.hvac.fan(this.shouldTurnFanOn(this.hvac.temp()));
   }
 
   this.shouldTurnFanOn = function shouldTurnFanOn(temperature) {
