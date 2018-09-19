@@ -1,26 +1,3 @@
-function Hvac(initialTemperature) {
-  this.temperature = initialTemperature;
-  this.coolCalledWith = [];
-  this.heatCalledWith = [];
-  this.fanCalledWith = [];
-
-  this.cool = function cool(shouldCool) {
-    this.coolCalledWith.push(shouldCool);
-  }
-
-  this.heat = function heat(shouldHeat){
-    this.heatCalledWith.push(shouldHeat);
-  }
-
-  this.fan = function fan(shouldFanBeSet){
-    this.fanCalledWith.push(shouldFanBeSet);
-  }
-
-  this.temp = function temp() {
-    return this.temperature;
-  }
-}
-
 function get(url, callback) {
   var oReq = new XMLHttpRequest();
   oReq.addEventListener("load", callback);
@@ -33,44 +10,55 @@ function post(url, body, callback) {
   oReq.addEventListener("load", callback);
   oReq.open("POST", url);
   oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-  oReq.send();
+  oReq.send(body);
 }
 
 function EnvironmentController(hvac) {
   const MIN_TEMP = 65;
   const MAX_TEMP = 75;
-  this.hvac = hvac;
   this.fanPreviousStates = [false];
 
   this.tick = function tick() {
-    switch (true) {
-      case (this.temperatureTooHigh(this.hvac.temp())):
-        return this.tryTurningOnCooling();
+    get('/temp', (response) => {
+      const temp = parseInt(response.target.response, 10);
 
-      case (this.temperatureTooLow(this.hvac.temp())):
-        return this.tryTurningOnHeating();
+      switch (true) {
+        case (this.temperatureTooHigh(temp)):
+          return this.tryTurningOnCooling(temp);
+  
+        case (this.temperatureTooLow(temp)):
+          return this.tryTurningOnHeating(temp);
+  
+        default: 
+          return this.doNothing(temp);
+      }
+    });
+  }
 
-      default: 
-        return this.doNothing();
+  this.serializeOnState = function serializeOnState(shouldTurnOn) {
+    if (shouldTurnOn) {
+      return 'on=1';
     }
+
+    return 'on=0';
   }
 
-  this.tryTurningOnCooling = function tryTurningOnCooling() {
-    this.hvac.cool(true);
-    this.hvac.heat(false);
-    this.hvac.fan(this.shouldTurnFanOn(this.hvac.temp()));
+  this.tryTurningOnCooling = function tryTurningOnCooling(temp) {
+    post('/cool', this.serializeOnState(true))
+    post('/heat', this.serializeOnState(false));
+    post('/fan', this.serializeOnState(this.shouldTurnFanOn(temp)));
   }
 
-  this.tryTurningOnHeating = function tryTurningOnHeating() {
-    this.hvac.cool(false);
-    this.hvac.heat(true);
-    this.hvac.fan(this.shouldTurnFanOn(this.hvac.temp()));
+  this.tryTurningOnHeating = function tryTurningOnHeating(temp) {
+    post('/cool', this.serializeOnState(false));
+    post('/heat', this.serializeOnState(true));
+    post('/fan', this.serializeOnState(this.shouldTurnFanOn(temp)));
   }
 
-  this.doNothing = function doNothing() {
-    this.hvac.cool(false);
-    this.hvac.heat(false);
-    this.hvac.fan(this.shouldTurnFanOn(this.hvac.temp()));
+  this.doNothing = function doNothing(temp) {
+    post('/cool', this.serializeOnState(false));
+    post('/heat', this.serializeOnState(false));
+    post('/fan', this.serializeOnState(this.shouldTurnFanOn(temp)));
   }
 
   this.shouldTurnFanOn = function shouldTurnFanOn(temperature) {
@@ -119,8 +107,4 @@ function EnvironmentController(hvac) {
       .reverse()
       .indexOf(true) + 1;
   }
-}
-
-function createStubHvac(initialTemperature) {
-  return new Hvac(initialTemperature);
 }
