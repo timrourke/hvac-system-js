@@ -2,9 +2,10 @@ const MIN_TEMP = 65;
 const MAX_TEMP = 75;
 
 class EnvironmentController {
-  constructor(hvac) {
+  constructor(hvac, ui) {
     this.fanPreviousStates = [false];
     this.hvac = hvac;
+    this.ui = ui;
   }
 
   static tempTooLow(temp) {
@@ -33,26 +34,41 @@ class EnvironmentController {
   }
 
   getTemp(callback) {
-    this.hvac.temp((temp) => callback(temp));
+    this.hvac.temp((temp) => {
+      this.ui.setTemp(temp);
+      callback(temp);
+    });
   }
 
   tryRunningFan(temp) {
-    this.hvac.fan(this.shouldTurnFanOn(temp));
+    const isFanOn = this.shouldTurnFanOn(temp);
+
+    this.hvac.fan(isFanOn);
+    this.ui.setFanState(isFanOn);
   }
 
   cool() {
     this.hvac.cool(true);
+    this.ui.setCoolState(true);
+
     this.hvac.heat(false);
+    this.ui.setHeatState(false);
   }
 
   heat() {
     this.hvac.cool(false);
+    this.ui.setCoolState(false);
+
     this.hvac.heat(true);
+    this.ui.setHeatState(true);
   }
 
   doNothing() {
     this.hvac.cool(false);
+    this.ui.setCoolState(false);
+
     this.hvac.heat(false);
+    this.ui.setHeatState(false);
   }
 
   shouldTurnFanOn(temp) {

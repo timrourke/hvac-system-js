@@ -26,7 +26,8 @@ describe("should manage temperature", () => {
     When(() => {
       temp = 76;
       const hvac = new HvacHttpImpl();
-      this.environmentController = new EnvironmentController(hvac);
+      const ui = new UiController();
+      this.environmentController = new EnvironmentController(hvac, ui);
       this.environmentController.tick();
     });
     Then(() => {
@@ -40,7 +41,8 @@ describe("should manage temperature", () => {
     When(() => {
       temp = 64;
       const hvac = new HvacHttpImpl();
-      this.environmentController = new EnvironmentController(hvac);
+      const ui = new UiController();
+      this.environmentController = new EnvironmentController(hvac, ui);
       this.environmentController.tick();
     });
     Then(() => {
@@ -54,7 +56,8 @@ describe("should manage temperature", () => {
     When(() => {
       temp = 70;
       const hvac = new HvacHttpImpl();
-      this.environmentController = new EnvironmentController(hvac);
+      const ui = new UiController();
+      this.environmentController = new EnvironmentController(hvac, ui);
       this.environmentController.tick();
     });
     Then(() => {
@@ -68,7 +71,8 @@ describe("should manage temperature", () => {
     When(() => {
       temp = 64;
       const hvac = new HvacHttpImpl();
-      this.environmentController = new EnvironmentController(hvac);
+      const ui = new UiController();
+      this.environmentController = new EnvironmentController(hvac, ui);
       this.environmentController.tick();
       this.environmentController.tick();
       this.environmentController.tick();
@@ -87,7 +91,8 @@ describe("should manage temperature", () => {
     When(() => {
       temp = 76;
       const hvac = new HvacHttpImpl();
-      this.environmentController = new EnvironmentController(hvac);
+      const ui = new UiController();
+      this.environmentController = new EnvironmentController(hvac, ui);
       this.environmentController.tick();
       this.environmentController.tick();
       this.environmentController.tick();

@@ -6,6 +6,53 @@
     <link rel="stylesheet" type="text/css" href="<%= css %>" media="all" />
   </head>
   <body>
+    <section>
+      <h1>Thermostat</h1>
+      <ul>
+        <li>Temp: <span class="temp">0</span></li>
+        <li>Fan: <span class="fan">Off</span></li>
+        <li>Heat: <span class="heat">Off</span></li>
+        <li>Cool: <span class="cool">Off</span></li>
+      </ul>
+    </section>
     <script type="text/javascript" src="<%= js %>"></script>
+    <script type="text/javascript">
+      function ready(fn) {
+        if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading"){
+          fn();
+        } else {
+          document.addEventListener('DOMContentLoaded', fn);
+        }
+      }
+
+      sinonFakeServerBuilder(
+        () => '76',
+        (xhr) => console.log('/heat called', xhr),
+        (xhr) => console.log('/cool called', xhr),
+        (xhr) => console.log('/fan called', xhr)
+      );
+
+      ready(() => {
+        const tempEl = document.querySelector('.temp');
+        const fanEl = document.querySelector('.fan');
+        const heatEl = document.querySelector('.heat');
+        const coolEl = document.querySelector('.cool');
+
+        const hvac = new HvacHttpImpl();
+        const ui = new UiController(
+          tempEl,
+          fanEl,
+          heatEl,
+          coolEl
+        );
+        const environmentController = new EnvironmentController(hvac, ui);
+
+        setInterval(() => {
+          requestAnimationFrame(() => {
+            environmentController.tick();
+          });
+        }, 1000);
+      });
+    </script>
   </body>
 </html>
