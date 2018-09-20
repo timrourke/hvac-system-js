@@ -1,3 +1,46 @@
+class HvacHttpImpl {
+  temp(callback) {
+    this.constructor.get('/temp', (response) => {
+      callback(parseInt(response.target.response, 10));
+    });
+  }
+
+  heat(shouldHeat) {
+    this.constructor.post('/heat', this.constructor.serializeOnState(shouldHeat));
+  }
+
+  cool(shouldCool) {
+    this.constructor.post('/cool', this.constructor.serializeOnState(shouldCool));
+  }
+
+  fan(shouldRunFan) {
+    this.constructor.post('/fan', this.constructor.serializeOnState(shouldRunFan));
+  }
+
+  static get(url, callback) {
+    const oReq = new XMLHttpRequest();
+    oReq.addEventListener("load", callback);
+    oReq.open("GET", url);
+    oReq.send();
+  }
+
+  static post(url, body, callback) {
+    const oReq = new XMLHttpRequest();
+    oReq.addEventListener("load", callback);
+    oReq.open("POST", url);
+    oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    oReq.send(body);
+  }
+
+  static serializeOnState(shouldTurnOn) {
+    if (shouldTurnOn) {
+      return 'on=1';
+    }
+
+    return 'on=0';
+  }
+}
+
 describe("should manage temperature", () => {
   let temp;
   let server;
@@ -5,17 +48,12 @@ describe("should manage temperature", () => {
   let heatCalledWith = [];
   let fanCalledWith = [];
 
-  function getTemp() {
-    return temp.toString();
-  }
-
   beforeEach(() => {
     coolCalledWith = [];
     heatCalledWith = [];
     fanCalledWith = [];
-    
+
     server = sinon.fakeServer.create({
-      autoRespond: true,
       respondImmediately: true,
     });
 
@@ -35,7 +73,7 @@ describe("should manage temperature", () => {
       'POST',
       '/heat',
       function(xhr) {
-        heatCalledWith.push(xhr.requestBody === 'on=1' ? true : false);
+        heatCalledWith.push(xhr.requestBody === 'on=1');
         xhr.respond(200, {}, '');
       }
     );
@@ -44,7 +82,7 @@ describe("should manage temperature", () => {
       'POST',
       '/cool',
       function(xhr) {
-        coolCalledWith.push(xhr.requestBody === 'on=1' ? true : false);
+        coolCalledWith.push(xhr.requestBody === 'on=1');
         xhr.respond(200, {}, '');
       }
     );
@@ -53,7 +91,7 @@ describe("should manage temperature", () => {
       'POST',
       '/fan',
       function(xhr) {
-        fanCalledWith.push(xhr.requestBody === 'on=1' ? true : false);
+        fanCalledWith.push(xhr.requestBody === 'on=1');
         xhr.respond(200, {}, '');
       }
     );
@@ -63,49 +101,53 @@ describe("should manage temperature", () => {
     server.restore();
   });
 
-  describe("turns on cooling and fan when temperature > 75", function() {
-    When(function() {
+  describe("turns on cooling and fan when temperature > 75", () => {
+    When(() => {
       temp = 76;
-      this.environmentController = new EnvironmentController();
+      const hvac = new HvacHttpImpl();
+      this.environmentController = new EnvironmentController(hvac);
       this.environmentController.tick();
     });
-    Then(function() {
+    Then(() => {
       expect(coolCalledWith[0]).toEqual(true);
       expect(heatCalledWith[0]).toEqual(false);
       expect(fanCalledWith[0]).toEqual(true);
     });
   });
-  
-  describe("turns on heat and fan when temparature < 65", function() {
-    When(function() {
+
+  describe("turns on heat and fan when temperature < 65", () => {
+    When(() => {
       temp = 64;
-      this.environmentController = new EnvironmentController();
+      const hvac = new HvacHttpImpl();
+      this.environmentController = new EnvironmentController(hvac);
       this.environmentController.tick();
     });
-    Then(function() {
+    Then(() => {
       expect(coolCalledWith[0]).toEqual(false);
       expect(heatCalledWith[0]).toEqual(true);
       expect(fanCalledWith[0]).toEqual(true);
     });
   });
-  
-  describe("does not call cool, heat, or fan when temperature between 65 and 75", function() {
-    When(function() {
+
+  describe("does not call cool, heat, or fan when temperature between 65 and 75", () => {
+    When(() => {
       temp = 70;
-      this.environmentController = new EnvironmentController();
+      const hvac = new HvacHttpImpl();
+      this.environmentController = new EnvironmentController(hvac);
       this.environmentController.tick();
     });
-    Then(function() {
+    Then(() => {
       expect(coolCalledWith[0]).toEqual(false);
       expect(heatCalledWith[0]).toEqual(false);
       expect(fanCalledWith[0]).toEqual(false);
     });
   });
-  
-  describe("heater is currently on, when heater is turned off, fan can't run for 5 minutes", function(){
-    When(function() {
+
+  describe("after the heating and fan are turned on, fan can't run for 5 minutes", () => {
+    When(() => {
       temp = 64;
-      this.environmentController = new EnvironmentController();
+      const hvac = new HvacHttpImpl();
+      this.environmentController = new EnvironmentController(hvac);
       this.environmentController.tick();
       this.environmentController.tick();
       this.environmentController.tick();
@@ -114,23 +156,24 @@ describe("should manage temperature", () => {
       this.environmentController.tick();
       this.environmentController.tick();
     });
-    Then(function() {
+    Then(() => {
       expect(fanCalledWith).toEqual([true, false, false, false, false, false, true]);
     });
   });
-  
-  describe("after the cooling and fan are turned on, the fan won't run again for 3 minutes", function
-  () {
-    When(function() {
+
+  describe("after the cooling and fan are turned on, fan won't run again for 3 minutes",
+  () => {
+    When(() => {
       temp = 76;
-      this.environmentController = new EnvironmentController();
+      const hvac = new HvacHttpImpl();
+      this.environmentController = new EnvironmentController(hvac);
       this.environmentController.tick();
       this.environmentController.tick();
       this.environmentController.tick();
       this.environmentController.tick();
       this.environmentController.tick();
     });
-    Then(function() {
+    Then(() => {
       expect(fanCalledWith).toEqual([true, false, false, false, true]);
     });
   });
