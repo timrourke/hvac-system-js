@@ -10,47 +10,11 @@ describe('HvacHttpImpl', () => {
     heatCalledWith = [];
     fanCalledWith = [];
 
-    server = sinon.fakeServer.create({
-      respondImmediately: true,
-    });
-
-    server.respondWith(
-      'GET',
-      '/temp',
-      function(xhr) {
-        xhr.respond(
-          200,
-          {},
-          temp.toString()
-        )
-      }
-    );
-
-    server.respondWith(
-      'POST',
-      '/heat',
-      function(xhr) {
-        heatCalledWith.push(xhr.requestBody);
-        xhr.respond(200, {}, '');
-      }
-    );
-
-    server.respondWith(
-      'POST',
-      '/cool',
-      function(xhr) {
-        coolCalledWith.push(xhr.requestBody);
-        xhr.respond(200, {}, '');
-      }
-    );
-
-    server.respondWith(
-      'POST',
-      '/fan',
-      function(xhr) {
-        fanCalledWith.push(xhr.requestBody);
-        xhr.respond(200, {}, '');
-      }
+    server = sinonFakeServerBuilder(
+      () => temp.toString(),
+      (xhr) => heatCalledWith.push(xhr.requestBody),
+      (xhr) => coolCalledWith.push(xhr.requestBody),
+      (xhr) => fanCalledWith.push(xhr.requestBody)
     );
   });
 
