@@ -55,5 +55,12 @@ module.exports = function(lineman) {
     //
     // livereload: true
 
+    jshint: {
+      options: {
+        esversion: 6,
+      },
+
+    },
+
   };
 };
