@@ -1,9 +1,11 @@
 class UiController {
-  constructor(tempEl = {}, fanEl = {}, heatEl = {}, coolEl = {}) {
+  constructor(tempEl = {}, fanEl = {}, heatEl = {}, coolEl = {}, minTempEl = {}, maxTempEl = {}) {
     this.tempEl = tempEl;
     this.fanEl = fanEl;
     this.heatEl = heatEl;
     this.coolEl = coolEl;
+    this.minTempEl = minTempEl;
+    this.maxTempEl = maxTempEl;
   }
 
   setTemp(temp) {
@@ -26,5 +28,13 @@ class UiController {
     this.coolEl.innerHTML = isCoolOn ?
       'ON' :
       'OFF';
+  }
+
+  setMinTemp(newValue) {
+    this.minTempEl.value = newValue;
+  }
+
+  setMaxTemp(newValue) {
+    this.maxTempEl.value = newValue;
   }
 }

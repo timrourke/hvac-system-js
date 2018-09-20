@@ -1,10 +1,12 @@
 describe('UiController', () => {
   const element = {
     innerHTML: null,
+    value: null,
   };
 
   beforeEach(() => {
     element.innerHTML = null;
+    element.value = null;
   });
 
   it('should set temp', () => {
@@ -63,5 +65,21 @@ describe('UiController', () => {
     controller.setHeatState(true);
 
     expect(element.innerHTML).toBe('ON');
+  });
+
+  it('should set min temp input value', () => {
+    const controller = new UiController(null, null, null, null, element, null);
+
+    controller.setMinTemp(34);
+
+    expect(element.value).toBe(34);
+  });
+
+  it('should set max temp input value', () => {
+    const controller = new UiController(null, null, null, null, null, element);
+
+    controller.setMaxTemp(99);
+
+    expect(element.value).toBe(99);
   });
 });

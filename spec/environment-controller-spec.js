@@ -27,8 +27,8 @@ describe("should manage temperature", () => {
       temp = 76;
       const hvac = new HvacHttpImpl();
       const ui = new UiController();
-      this.environmentController = new EnvironmentController(hvac, ui);
-      this.environmentController.tick();
+      environmentController = new EnvironmentController(hvac, ui);
+      environmentController.tick();
     });
     Then(() => {
       expect(coolCalledWith[0]).toEqual(true);
@@ -42,8 +42,8 @@ describe("should manage temperature", () => {
       temp = 64;
       const hvac = new HvacHttpImpl();
       const ui = new UiController();
-      this.environmentController = new EnvironmentController(hvac, ui);
-      this.environmentController.tick();
+      environmentController = new EnvironmentController(hvac, ui);
+      environmentController.tick();
     });
     Then(() => {
       expect(coolCalledWith[0]).toEqual(false);
@@ -57,8 +57,8 @@ describe("should manage temperature", () => {
       temp = 70;
       const hvac = new HvacHttpImpl();
       const ui = new UiController();
-      this.environmentController = new EnvironmentController(hvac, ui);
-      this.environmentController.tick();
+      environmentController = new EnvironmentController(hvac, ui);
+      environmentController.tick();
     });
     Then(() => {
       expect(coolCalledWith[0]).toEqual(false);
@@ -72,14 +72,14 @@ describe("should manage temperature", () => {
       temp = 64;
       const hvac = new HvacHttpImpl();
       const ui = new UiController();
-      this.environmentController = new EnvironmentController(hvac, ui);
-      this.environmentController.tick();
-      this.environmentController.tick();
-      this.environmentController.tick();
-      this.environmentController.tick();
-      this.environmentController.tick();
-      this.environmentController.tick();
-      this.environmentController.tick();
+      environmentController = new EnvironmentController(hvac, ui);
+      environmentController.tick();
+      environmentController.tick();
+      environmentController.tick();
+      environmentController.tick();
+      environmentController.tick();
+      environmentController.tick();
+      environmentController.tick();
     });
     Then(() => {
       expect(fanCalledWith).toEqual([true, false, false, false, false, false, true]);
@@ -92,15 +92,95 @@ describe("should manage temperature", () => {
       temp = 76;
       const hvac = new HvacHttpImpl();
       const ui = new UiController();
-      this.environmentController = new EnvironmentController(hvac, ui);
-      this.environmentController.tick();
-      this.environmentController.tick();
-      this.environmentController.tick();
-      this.environmentController.tick();
-      this.environmentController.tick();
+      environmentController = new EnvironmentController(hvac, ui);
+      environmentController.tick();
+      environmentController.tick();
+      environmentController.tick();
+      environmentController.tick();
+      environmentController.tick();
     });
     Then(() => {
       expect(fanCalledWith).toEqual([true, false, false, false, true]);
+    });
+  });
+
+  describe('should set min temp', () => {
+    let ctrl;
+    When(() => {
+      const hvac = new HvacHttpImpl();
+      const ui = new UiController();
+      ctrl = new EnvironmentController(hvac, ui);
+      ctrl.setMinTemp(40);
+    });
+    Then(() => {
+      expect(ctrl.minTemp).toBe(40);
+    });
+  });
+
+  describe('should set max temp', () => {
+    let ctrl;
+    When(() => {
+      const hvac = new HvacHttpImpl();
+      const ui = new UiController();
+      ctrl = new EnvironmentController(hvac, ui);
+      ctrl.setMaxTemp(90);
+    });
+    Then(() => {
+      expect(ctrl.maxTemp).toBe(90);
+    });
+  });
+
+  describe('should not set min temp to below 0', () => {
+    let ctrl;
+    When(() => {
+      const hvac = new HvacHttpImpl();
+      const ui = new UiController();
+      ctrl = new EnvironmentController(hvac, ui);
+      ctrl.setMinTemp(-34);
+    });
+    Then(() => {
+      expect(ctrl.minTemp).toBe(0);
+    });
+  });
+
+  describe('should not set max temp to above 100', () => {
+    let ctrl;
+    When(() => {
+      const hvac = new HvacHttpImpl();
+      const ui = new UiController();
+      ctrl = new EnvironmentController(hvac, ui);
+      ctrl.setMaxTemp(127);
+    });
+    Then(() => {
+      expect(ctrl.maxTemp).toBe(127);
+    });
+  });
+
+  describe('should prevent min temp from being set higher than max temp', () => {
+    let ctrl;
+    When(() => {
+      const hvac = new HvacHttpImpl();
+      const ui = new UiController();
+      ctrl = new EnvironmentController(hvac, ui);
+      ctrl.setMaxTemp(72);
+      ctrl.setMinTemp(80);
+    });
+    Then(() => {
+      expect(ctrl.minTemp).toBe(72);
+    });
+  });
+
+  describe('should prevent max temp from being set lower than min temp', () => {
+    let ctrl;
+    When(() => {
+      const hvac = new HvacHttpImpl();
+      const ui = new UiController();
+      ctrl = new EnvironmentController(hvac, ui);
+      ctrl.setMinTemp(29);
+      ctrl.setMaxTemp(8);
+    });
+    Then(() => {
+      expect(ctrl.maxTemp).toBe(29);
     });
   });
 });
