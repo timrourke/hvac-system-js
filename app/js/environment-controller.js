@@ -1,18 +1,18 @@
-const MIN_TEMP = 65;
-const MAX_TEMP = 75;
-
 class EnvironmentController {
-  constructor(hvac) {
+  constructor(hvac, ui, minTemp = 65, maxTemp = 75) {
     this.fanPreviousStates = [false];
     this.hvac = hvac;
+    this.ui = ui;
+    this.setMinTemp(minTemp);
+    this.setMaxTemp(maxTemp);
   }
 
-  static tempTooLow(temp) {
-    return temp < MIN_TEMP;
+  tempTooLow(temp) {
+    return temp < this.minTemp;
   }
 
-  static tempTooHigh(temp) {
-    return temp > MAX_TEMP;
+  tempTooHigh(temp) {
+    return temp > this.maxTemp;
   }
 
   tick() {
@@ -20,10 +20,10 @@ class EnvironmentController {
       this.tryRunningFan(temp);
 
       switch (true) {
-        case (this.constructor.tempTooHigh(temp)):
+        case (this.tempTooHigh(temp)):
           return this.cool();
 
-        case (this.constructor.tempTooLow(temp)):
+        case (this.tempTooLow(temp)):
           return this.heat();
 
         default:
@@ -33,26 +33,41 @@ class EnvironmentController {
   }
 
   getTemp(callback) {
-    this.hvac.temp((temp) => callback(temp));
+    this.hvac.temp((temp) => {
+      this.ui.setTemp(temp);
+      callback(temp);
+    });
   }
 
   tryRunningFan(temp) {
-    this.hvac.fan(this.shouldTurnFanOn(temp));
+    const isFanOn = this.shouldTurnFanOn(temp);
+
+    this.hvac.fan(isFanOn);
+    this.ui.setFanState(isFanOn);
   }
 
   cool() {
     this.hvac.cool(true);
+    this.ui.setCoolState(true);
+
     this.hvac.heat(false);
+    this.ui.setHeatState(false);
   }
 
   heat() {
     this.hvac.cool(false);
+    this.ui.setCoolState(false);
+
     this.hvac.heat(true);
+    this.ui.setHeatState(true);
   }
 
   doNothing() {
     this.hvac.cool(false);
+    this.ui.setCoolState(false);
+
     this.hvac.heat(false);
+    this.ui.setHeatState(false);
   }
 
   shouldTurnFanOn(temp) {
@@ -67,7 +82,7 @@ class EnvironmentController {
     const numMinutesFanLastOn = this.getNumMinutesFanLastOn();
 
     // The fan should not turn on if the temp is satisfactory
-    if (!this.constructor.tempTooLow(temp) && !this.constructor.tempTooHigh(temp)) {
+    if (!this.tempTooLow(temp) && !this.tempTooHigh(temp)) {
       return false;
     }
 
@@ -78,7 +93,7 @@ class EnvironmentController {
 
     // If the temp is too low, the fan can turn on if it hasn't been run
     // in more than 5 minutes
-    if (this.constructor.tempTooLow(temp)) {
+    if (this.tempTooLow(temp)) {
       return numMinutesFanLastOn > 5;
     }
 
@@ -92,5 +107,51 @@ class EnvironmentController {
       .slice()
       .reverse()
       .indexOf(true) + 1;
+  }
+
+  static parseTempInput(temp) {
+    let newValue = parseInt(`${temp}`.trim(), 10);
+
+    if (isNaN(newValue) || newValue < 0) {
+      newValue = 0;
+    }
+
+    return newValue;
+  }
+
+  getMinTempWithinRange(temp) {
+    if (temp > this.maxTemp) {
+      return this.maxTemp;
+    }
+
+    return temp;
+  }
+
+  getMaxTempWithinRange(temp) {
+    if (temp < this.minTemp) {
+      return this.minTemp;
+    }
+
+    return temp;
+  }
+
+  setMinTemp(temp) {
+    let newValue = this.getMinTempWithinRange(
+      this.constructor.parseTempInput(temp)
+    );
+
+    this.minTemp = newValue;
+
+    this.ui.setMinTemp(newValue);
+  }
+
+  setMaxTemp(temp) {
+    let newValue = this.getMaxTempWithinRange(
+      this.constructor.parseTempInput(temp)
+    );
+
+    this.maxTemp = newValue;
+
+    this.ui.setMaxTemp(newValue);
   }
 }
